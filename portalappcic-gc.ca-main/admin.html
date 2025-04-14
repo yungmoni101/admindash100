@@ -172,6 +172,116 @@
     </style>
 </head>
 <body class="bg-light">
+    <!--PASSWORD-->
+<div id="loginOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#2c3e50;z-index:2000;display:flex;justify-content:center;align-items:center">
+    <div style="background:white;padding:2rem;border-radius:8px;width:100%;max-width:400px">
+        <h3 class="mb-4">Admin Login</h3>
+        <form id="loginForm" onsubmit="return authenticate(event)">
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input type="text" class="form-control" id="yungmoni" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control" id="marlains" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+        </form>
+        <div id="loginError" class="text-danger mt-2" style="display:none"></div>
+    </div>
+</div>
+
+<script>
+// Add this to the top of your existing script
+// =============== PASSWORD CONFIGURATION ===============
+// To set your own credentials:
+// 1. Choose a username and password
+// 2. Run this in your browser console:
+//    await generatePasswordHash('your_username', 'your_password')
+// 3. Replace the values below with the generated ones
+
+const STORED_USERNAME = 'ba85fedc81c6796bcf070c44dc357a5cd210bf8ae598f403dd96f5cc4caaa3f5'; // Generated hash for username
+const STORED_PASSWORD = '535daa855ee9fb96b736f53022968cb520a85e8b44a25e0066522325ef36b5dd'; // Generated hash for password
+const SALT = 'xQ9!pL2@zR5#sW8$vK3%'; // Change this to any random string
+// ======================================================
+
+async function generatePasswordHash(username, password) {
+    const encoder = new TextEncoder();
+    const usernameHash = await crypto.subtle.digest('SHA-256', encoder.encode(username + SALT));
+    const passwordHash = await crypto.subtle.digest('SHA-256', encoder.encode(password + SALT));
+    
+    const usernameHashHex = Array.from(new Uint8Array(usernameHash))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+    const passwordHashHex = Array.from(new Uint8Array(passwordHash))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+
+    console.log('Replace these in your code:');
+    console.log('STORED_USERNAME:', usernameHashHex);
+    console.log('STORED_PASSWORD:', passwordHashHex);
+}
+
+async function authenticate(e) {
+    e.preventDefault();
+    const username = document.getElementById('yungmoni').value;
+    const password = document.getElementById('marlains').value;
+    const errorElement = document.getElementById('loginError');
+
+    try {
+        const encoder = new TextEncoder();
+        
+        // Generate username hash
+        const usernameHash = await crypto.subtle.digest('SHA-256', 
+            encoder.encode(username + SALT));
+        const usernameHashHex = Array.from(new Uint8Array(usernameHash))
+            .map(b => b.toString(16).padStart(2, '0')).join('');
+
+        // Generate password hash
+        const passwordHash = await crypto.subtle.digest('SHA-256', 
+            encoder.encode(password + SALT));
+        const passwordHashHex = Array.from(new Uint8Array(passwordHash))
+            .map(b => b.toString(16).padStart(2, '0')).join('');
+
+        // Compare hashes
+        if (usernameHashHex === STORED_USERNAME && passwordHashHex === STORED_PASSWORD) {
+            // Successful login
+            document.getElementById('loginOverlay').style.display = 'none';
+            sessionStorage.setItem('authenticated', 'true');
+        } else {
+            throw new Error('Invalid credentials');
+        }
+    } catch (error) {
+        errorElement.textContent = 'Invalid username or password';
+        errorElement.style.display = 'block';
+        setTimeout(() => errorElement.style.display = 'none', 3000);
+    }
+}
+
+// Check authentication state on page load
+document.addEventListener('DOMContentLoaded', () => {
+    if (!sessionStorage.getItem('authenticated')) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.getElementById('loginOverlay').style.display = 'none';
+    }
+});
+
+// Add a logout button (add this to your sidebar)
+function addLogoutButton() {
+    const sidebar = document.querySelector('.sidebar');
+    const logoutBtn = document.createElement('a');
+    logoutBtn.className = 'nav-link';
+    logoutBtn.innerHTML = '<i class="bi bi-box-arrow-left"></i><span>Logout</span>';
+    logoutBtn.onclick = () => {
+        sessionStorage.removeItem('authenticated');
+        window.location.reload();
+    };
+    sidebar.appendChild(logoutBtn);
+}
+// Call this after initializing your sidebar
+addLogoutButton();
+</script>
+</body>
+
     <!-- Sidebar -->
     <div class="sidebar">
         <h3 class="mb-4 text-center"><i class="bi bi-gear-fill"></i></h3>
@@ -210,6 +320,7 @@
             </a>
         </nav>
     </div>
+
 
     <!-- Main Content -->
     <div class="main-content">
@@ -282,6 +393,7 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
     <script>
+        
         let currentTable = 'users';
         let editModal, addModal;
         let currentRecord = null;
@@ -1034,6 +1146,7 @@
                 alert('Error in delete operation: ' + error.message);
             }
         }
+        
     </script>
 </body>
 </html>
