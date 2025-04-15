@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Get application data
             const { data: applicationData, error: appError } = await supabase
                 .from('applications')
-                .select('id, first_name, country_of_birth, application_id')
+                .select('*')
                 .eq('user_id', userData.id)
                 .single();
 
