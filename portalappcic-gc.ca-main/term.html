@@ -395,7 +395,7 @@
                 try {
                     const timestamp = new Date().getTime();
                     const filename = `${timestamp}_${file.name}`;
-                    const filePath = `public/${filename}`;
+                    const filePath = `${filename}`;
 
                     // Upload to storage
                     const { error: uploadError } = await supabase.storage
